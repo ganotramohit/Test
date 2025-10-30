@@ -1,0 +1,252 @@
+import { useState } from 'react';
+import { DACIHeader } from './components/DACIHeader';
+import { DACIList } from './components/DACIList';
+import { AddDACIDialog } from './components/AddDACIDialog';
+import { DACIExplainer } from './components/DACIExplainer';
+import { AnalyticsDashboard } from './components/AnalyticsDashboard';
+import { ChatbotFab } from './components/ChatbotFab';
+import { PlatformImportDialog } from './components/PlatformImportDialog';
+import { Button } from './components/ui/button';
+import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
+import { Toaster } from './components/ui/sonner';
+import { toast } from 'sonner@2.0.3';
+import { Plus, BarChart3, FileText, Download } from 'lucide-react';
+
+export interface DACIPerson {
+  name: string;
+  email: string;
+}
+
+export interface DACIItem {
+  id: string;
+  title: string;
+  description: string;
+  driver: DACIPerson | null;
+  approver: DACIPerson | null;
+  contributors: DACIPerson[];
+  informed: DACIPerson[];
+  status: 'draft' | 'in-progress' | 'approved' | 'completed';
+  createdAt: Date;
+  dueDate: Date | null;
+  importedFrom?: 'slack' | 'teams' | 'confluence';
+}
+
+export default function App() {
+  const [isImportDialogOpen, setIsImportDialogOpen] = useState(false);
+  const [pendingImportDecision, setPendingImportDecision] = useState<any>(null);
+  
+  const [daciItems, setDaciItems] = useState<DACIItem[]>([
+    {
+      id: '1',
+      title: 'Q4 Marketing Campaign Strategy',
+      description: 'Determine the strategic direction and budget allocation for Q4 marketing initiatives',
+      driver: { name: 'Sarah Chen', email: 'sarah.chen@company.com' },
+      approver: { name: 'Michael Roberts', email: 'michael.roberts@company.com' },
+      contributors: [
+        { name: 'Emma Wilson', email: 'emma.wilson@company.com' },
+        { name: 'James Park', email: 'james.park@company.com' }
+      ],
+      informed: [
+        { name: 'Lisa Anderson', email: 'lisa.anderson@company.com' },
+        { name: 'David Kim', email: 'david.kim@company.com' }
+      ],
+      status: 'in-progress',
+      createdAt: new Date('2025-10-15'),
+      dueDate: new Date('2025-10-30'),
+      importedFrom: 'slack'
+    },
+    {
+      id: '2',
+      title: 'New Office Location Selection',
+      description: 'Select the new office location for the engineering team expansion',
+      driver: { name: 'James Park', email: 'james.park@company.com' },
+      approver: { name: 'Michael Roberts', email: 'michael.roberts@company.com' },
+      contributors: [
+        { name: 'Sarah Chen', email: 'sarah.chen@company.com' },
+        { name: 'Tom Martinez', email: 'tom.martinez@company.com' }
+      ],
+      informed: [
+        { name: 'All Staff', email: 'all-staff@company.com' }
+      ],
+      status: 'draft',
+      createdAt: new Date('2025-10-20'),
+      dueDate: new Date('2025-11-15'),
+      importedFrom: 'teams'
+    },
+    {
+      id: '3',
+      title: 'Product Roadmap Q1 2026',
+      description: 'Define the product development priorities and feature roadmap for Q1 2026',
+      driver: { name: 'Emma Wilson', email: 'emma.wilson@company.com' },
+      approver: { name: 'Michael Roberts', email: 'michael.roberts@company.com' },
+      contributors: [
+        { name: 'Sarah Chen', email: 'sarah.chen@company.com' },
+        { name: 'James Park', email: 'james.park@company.com' },
+        { name: 'Tom Martinez', email: 'tom.martinez@company.com' }
+      ],
+      informed: [
+        { name: 'Lisa Anderson', email: 'lisa.anderson@company.com' },
+        { name: 'David Kim', email: 'david.kim@company.com' }
+      ],
+      status: 'completed',
+      createdAt: new Date('2025-09-10'),
+      dueDate: new Date('2025-10-10'),
+      importedFrom: 'confluence'
+    },
+    {
+      id: '4',
+      title: 'Annual Budget Allocation',
+      description: 'Approve the annual budget allocation across all departments',
+      driver: { name: 'Sarah Chen', email: 'sarah.chen@company.com' },
+      approver: { name: 'Michael Roberts', email: 'michael.roberts@company.com' },
+      contributors: [
+        { name: 'Tom Martinez', email: 'tom.martinez@company.com' }
+      ],
+      informed: [
+        { name: 'All Staff', email: 'all-staff@company.com' }
+      ],
+      status: 'approved',
+      createdAt: new Date('2025-09-25'),
+      dueDate: new Date('2025-10-25')
+    },
+    {
+      id: '5',
+      title: 'Remote Work Policy Update',
+      description: 'Update company remote work policy based on employee feedback',
+      driver: { name: 'Lisa Anderson', email: 'lisa.anderson@company.com' },
+      approver: { name: 'Michael Roberts', email: 'michael.roberts@company.com' },
+      contributors: [
+        { name: 'Sarah Chen', email: 'sarah.chen@company.com' },
+        { name: 'David Kim', email: 'david.kim@company.com' }
+      ],
+      informed: [
+        { name: 'All Staff', email: 'all-staff@company.com' }
+      ],
+      status: 'completed',
+      createdAt: new Date('2025-08-15'),
+      dueDate: new Date('2025-09-15')
+    }
+  ]);
+
+  const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('decisions');
+
+  const handleAddDaci = (newItem: Omit<DACIItem, 'id' | 'createdAt'>) => {
+    const item: DACIItem = {
+      ...newItem,
+      id: Date.now().toString(),
+      createdAt: new Date()
+    };
+    setDaciItems([...daciItems, item]);
+  };
+
+  const handleUpdateDaci = (id: string, updates: Partial<DACIItem>) => {
+    setDaciItems(daciItems.map(item => 
+      item.id === id ? { ...item, ...updates } : item
+    ));
+  };
+
+  const handleDeleteDaci = (id: string) => {
+    setDaciItems(daciItems.filter(item => item.id !== id));
+  };
+
+  const handlePlatformImport = (extractedDecision: any) => {
+    setPendingImportDecision(extractedDecision);
+    setIsImportDialogOpen(false);
+    setIsAddDialogOpen(true);
+    const platformNames = {
+      slack: 'Slack',
+      teams: 'Teams',
+      confluence: 'Confluence'
+    };
+    const platformName = platformNames[extractedDecision.importedFrom as keyof typeof platformNames] || 'Platform';
+    toast.success(`${platformName} conversation imported successfully! Review and modify the decision as needed.`);
+  };
+
+  return (
+    <div className="min-h-screen bg-slate-50">
+      <DACIHeader />
+      
+      <div className="max-w-7xl mx-auto px-6 py-8">
+        <Tabs value={activeTab} onValueChange={setActiveTab} className="space-y-6">
+          <div className="flex items-center justify-between">
+            <TabsList>
+              <TabsTrigger value="decisions" className="gap-2">
+                <FileText className="size-4" />
+                Decisions
+              </TabsTrigger>
+              <TabsTrigger value="analytics" className="gap-2">
+                <BarChart3 className="size-4" />
+                Analytics
+              </TabsTrigger>
+            </TabsList>
+
+            {activeTab === 'decisions' && (
+              <div className="flex gap-2">
+                <Button 
+                  variant="outline" 
+                  onClick={() => setIsImportDialogOpen(true)} 
+                  className="gap-2"
+                >
+                  <Download className="size-4" />
+                  Import from Platform
+                </Button>
+                <Button onClick={() => setIsAddDialogOpen(true)} className="gap-2">
+                  <Plus className="size-4" />
+                  New Decision
+                </Button>
+              </div>
+            )}
+          </div>
+
+          <TabsContent value="decisions" className="space-y-8">
+            <div>
+              <h1 className="text-slate-900 mb-2">Project DACI Framework</h1>
+              <p className="text-slate-600">
+                Manage decision-making roles and responsibilities for your project
+              </p>
+            </div>
+
+            <DACIExplainer />
+
+            <DACIList 
+              items={daciItems}
+              onUpdate={handleUpdateDaci}
+              onDelete={handleDeleteDaci}
+            />
+          </TabsContent>
+
+          <TabsContent value="analytics">
+            <div className="mb-6">
+              <h1 className="text-slate-900 mb-2">DACI Analytics Dashboard</h1>
+              <p className="text-slate-600">
+                Track adoption metrics, decision cycle times, and stakeholder participation
+              </p>
+            </div>
+
+            <AnalyticsDashboard items={daciItems} />
+          </TabsContent>
+        </Tabs>
+
+        <AddDACIDialog 
+          open={isAddDialogOpen}
+          onOpenChange={(open) => {
+            setIsAddDialogOpen(open);
+            if (!open) setPendingImportDecision(null);
+          }}
+          onAdd={handleAddDaci}
+          initialData={pendingImportDecision}
+        />
+
+        <PlatformImportDialog
+          open={isImportDialogOpen}
+          onOpenChange={setIsImportDialogOpen}
+          onImport={handlePlatformImport}
+        />
+      </div>
+
+      <ChatbotFab />
+      <Toaster />
+    </div>
+  );
+}
