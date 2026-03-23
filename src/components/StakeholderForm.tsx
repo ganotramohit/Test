@@ -46,6 +46,15 @@ const initialState: Stakeholder = {
   recentDecisionsLed: 1
 };
 
+type Score = 1 | 2 | 3 | 4 | 5;
+
+const toScore = (value: number): Score => {
+  const normalized = Math.round(value);
+  if (normalized <= 1) return 1;
+  if (normalized >= 5) return 5;
+  return normalized as Score;
+};
+
 export function StakeholderForm({ onAdd }: StakeholderFormProps) {
   const [form, setForm] = useState<Stakeholder>(initialState);
   const [error, setError] = useState<string | null>(null);
@@ -68,6 +77,10 @@ export function StakeholderForm({ onAdd }: StakeholderFormProps) {
       });
       const stakeholder: Stakeholder = {
         ...parsed,
+        decisionInfluence: toScore(parsed.decisionInfluence),
+        leadershipScore: toScore(parsed.leadershipScore),
+        collaborationScore: toScore(parsed.collaborationScore),
+        organizationalKnowledge: toScore(parsed.organizationalKnowledge),
         id: crypto.randomUUID()
       };
       onAdd(stakeholder);
@@ -230,8 +243,8 @@ function Field({ label, children }: FieldProps) {
 }
 
 interface SliderInputProps {
-  value: number;
-  onChange: (value: 1 | 2 | 3 | 4 | 5) => void;
+  value: Score;
+  onChange: (value: Score) => void;
 }
 
 function SliderInput({ value, onChange }: SliderInputProps) {
@@ -242,7 +255,7 @@ function SliderInput({ value, onChange }: SliderInputProps) {
         min={1}
         max={5}
         value={value}
-        onChange={event => onChange(Number(event.target.value) as SliderInputProps['value'])}
+        onChange={event => onChange(toScore(Number(event.target.value)))}
         className="h-2 w-full cursor-pointer appearance-none rounded-full bg-slate-200"
       />
       <span className="w-6 text-right text-xs font-semibold text-slate-700">{value}</span>

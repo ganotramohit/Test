@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { RefreshCw, Rocket, ShieldAlert } from 'lucide-react';
+import { KeyRound, RefreshCw, Rocket, ShieldAlert } from 'lucide-react';
 import { Header } from './components/Header';
 import { ProjectBrief } from './components/ProjectBrief';
 import { ProjectForm } from './components/ProjectForm';
@@ -8,6 +8,7 @@ import { StakeholderForm } from './components/StakeholderForm';
 import { RecommendationPanel } from './components/RecommendationPanel';
 import { CoverageMetrics } from './components/CoverageMetrics';
 import { SummaryPanel } from './components/SummaryPanel';
+import { PasskeyEligibilityFlow } from './components/PasskeyEligibilityFlow';
 import { Tabs, TabsContent, TabsList, TabsTrigger } from './components/ui/tabs';
 import { Button } from './components/ui/button';
 import { Badge } from './components/ui/badge';
@@ -91,6 +92,9 @@ export default function App() {
                 <TabsTrigger value="analytics" className="gap-2">
                   Metrics
                 </TabsTrigger>
+                <TabsTrigger value="passkey" className="gap-2">
+                  <KeyRound className="h-4 w-4" /> Passkey flow
+                </TabsTrigger>
               </TabsList>
               <div className="text-xs text-slate-500">
                 {result.recommendations.length ? 'Assignments ready for review' : 'Run the engine to generate insights'}
@@ -110,6 +114,10 @@ export default function App() {
 
             <TabsContent value="analytics">
               <CoverageMetrics metrics={result.coverage} />
+            </TabsContent>
+
+            <TabsContent value="passkey">
+              <PasskeyEligibilityFlow />
             </TabsContent>
           </Tabs>
         </section>
