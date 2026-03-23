@@ -11,6 +11,11 @@ export default tseslint.config(
   {
     files: ['**/*.{ts,tsx}'],
     ignores: ['dist/**', 'node_modules/**'],
+    settings: {
+      react: {
+        version: 'detect'
+      }
+    },
     plugins: {
       react: reactPlugin,
       'react-hooks': reactHooks,
@@ -20,6 +25,7 @@ export default tseslint.config(
       ...reactPlugin.configs.recommended.rules,
       ...reactPlugin.configs['jsx-runtime'].rules,
       ...reactHooks.configs.recommended.rules,
+      'react/prop-types': 'off',
       'react-refresh/only-export-components': ['warn', { allowConstantExport: true }]
     }
   },
